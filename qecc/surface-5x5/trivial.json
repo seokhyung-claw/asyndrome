@@ -1,0 +1,410 @@
+[
+    [
+        {
+            "data": 1,
+            "ancilla": 26,
+            "pauli": "X"
+        },
+        {
+            "data": 3,
+            "ancilla": 27,
+            "pauli": "X"
+        },
+        {
+            "data": 5,
+            "ancilla": 28,
+            "pauli": "X"
+        },
+        {
+            "data": 7,
+            "ancilla": 29,
+            "pauli": "X"
+        },
+        {
+            "data": 9,
+            "ancilla": 30,
+            "pauli": "X"
+        },
+        {
+            "data": 11,
+            "ancilla": 32,
+            "pauli": "X"
+        },
+        {
+            "data": 13,
+            "ancilla": 33,
+            "pauli": "X"
+        },
+        {
+            "data": 15,
+            "ancilla": 34,
+            "pauli": "X"
+        },
+        {
+            "data": 17,
+            "ancilla": 35,
+            "pauli": "X"
+        },
+        {
+            "data": 19,
+            "ancilla": 36,
+            "pauli": "X"
+        },
+        {
+            "data": 0,
+            "ancilla": 39,
+            "pauli": "Z"
+        },
+        {
+            "data": 2,
+            "ancilla": 40,
+            "pauli": "Z"
+        },
+        {
+            "data": 6,
+            "ancilla": 41,
+            "pauli": "Z"
+        },
+        {
+            "data": 8,
+            "ancilla": 42,
+            "pauli": "Z"
+        },
+        {
+            "data": 10,
+            "ancilla": 43,
+            "pauli": "Z"
+        },
+        {
+            "data": 12,
+            "ancilla": 44,
+            "pauli": "Z"
+        },
+        {
+            "data": 16,
+            "ancilla": 45,
+            "pauli": "Z"
+        },
+        {
+            "data": 18,
+            "ancilla": 46,
+            "pauli": "Z"
+        },
+        {
+            "data": 20,
+            "ancilla": 47,
+            "pauli": "Z"
+        },
+        {
+            "data": 22,
+            "ancilla": 48,
+            "pauli": "Z"
+        }
+    ],
+    [
+        {
+            "data": 0,
+            "ancilla": 25,
+            "pauli": "X"
+        },
+        {
+            "data": 2,
+            "ancilla": 26,
+            "pauli": "X"
+        },
+        {
+            "data": 4,
+            "ancilla": 27,
+            "pauli": "X"
+        },
+        {
+            "data": 6,
+            "ancilla": 28,
+            "pauli": "X"
+        },
+        {
+            "data": 8,
+            "ancilla": 29,
+            "pauli": "X"
+        },
+        {
+            "data": 10,
+            "ancilla": 31,
+            "pauli": "X"
+        },
+        {
+            "data": 12,
+            "ancilla": 32,
+            "pauli": "X"
+        },
+        {
+            "data": 14,
+            "ancilla": 33,
+            "pauli": "X"
+        },
+        {
+            "data": 16,
+            "ancilla": 34,
+            "pauli": "X"
+        },
+        {
+            "data": 18,
+            "ancilla": 35,
+            "pauli": "X"
+        },
+        {
+            "data": 1,
+            "ancilla": 39,
+            "pauli": "Z"
+        },
+        {
+            "data": 3,
+            "ancilla": 40,
+            "pauli": "Z"
+        },
+        {
+            "data": 7,
+            "ancilla": 41,
+            "pauli": "Z"
+        },
+        {
+            "data": 9,
+            "ancilla": 42,
+            "pauli": "Z"
+        },
+        {
+            "data": 11,
+            "ancilla": 43,
+            "pauli": "Z"
+        },
+        {
+            "data": 13,
+            "ancilla": 44,
+            "pauli": "Z"
+        },
+        {
+            "data": 17,
+            "ancilla": 45,
+            "pauli": "Z"
+        },
+        {
+            "data": 19,
+            "ancilla": 46,
+            "pauli": "Z"
+        },
+        {
+            "data": 21,
+            "ancilla": 47,
+            "pauli": "Z"
+        },
+        {
+            "data": 23,
+            "ancilla": 48,
+            "pauli": "Z"
+        }
+    ],
+    [
+        {
+            "data": 5,
+            "ancilla": 25,
+            "pauli": "X"
+        },
+        {
+            "data": 7,
+            "ancilla": 26,
+            "pauli": "X"
+        },
+        {
+            "data": 9,
+            "ancilla": 27,
+            "pauli": "X"
+        },
+        {
+            "data": 11,
+            "ancilla": 28,
+            "pauli": "X"
+        },
+        {
+            "data": 13,
+            "ancilla": 29,
+            "pauli": "X"
+        },
+        {
+            "data": 15,
+            "ancilla": 31,
+            "pauli": "X"
+        },
+        {
+            "data": 17,
+            "ancilla": 32,
+            "pauli": "X"
+        },
+        {
+            "data": 19,
+            "ancilla": 33,
+            "pauli": "X"
+        },
+        {
+            "data": 21,
+            "ancilla": 34,
+            "pauli": "X"
+        },
+        {
+            "data": 23,
+            "ancilla": 35,
+            "pauli": "X"
+        },
+        {
+            "data": 2,
+            "ancilla": 37,
+            "pauli": "Z"
+        },
+        {
+            "data": 4,
+            "ancilla": 38,
+            "pauli": "Z"
+        },
+        {
+            "data": 6,
+            "ancilla": 39,
+            "pauli": "Z"
+        },
+        {
+            "data": 8,
+            "ancilla": 40,
+            "pauli": "Z"
+        },
+        {
+            "data": 12,
+            "ancilla": 41,
+            "pauli": "Z"
+        },
+        {
+            "data": 14,
+            "ancilla": 42,
+            "pauli": "Z"
+        },
+        {
+            "data": 16,
+            "ancilla": 43,
+            "pauli": "Z"
+        },
+        {
+            "data": 18,
+            "ancilla": 44,
+            "pauli": "Z"
+        },
+        {
+            "data": 22,
+            "ancilla": 45,
+            "pauli": "Z"
+        },
+        {
+            "data": 24,
+            "ancilla": 46,
+            "pauli": "Z"
+        }
+    ],
+    [
+        {
+            "data": 6,
+            "ancilla": 26,
+            "pauli": "X"
+        },
+        {
+            "data": 8,
+            "ancilla": 27,
+            "pauli": "X"
+        },
+        {
+            "data": 10,
+            "ancilla": 28,
+            "pauli": "X"
+        },
+        {
+            "data": 12,
+            "ancilla": 29,
+            "pauli": "X"
+        },
+        {
+            "data": 14,
+            "ancilla": 30,
+            "pauli": "X"
+        },
+        {
+            "data": 16,
+            "ancilla": 32,
+            "pauli": "X"
+        },
+        {
+            "data": 18,
+            "ancilla": 33,
+            "pauli": "X"
+        },
+        {
+            "data": 20,
+            "ancilla": 34,
+            "pauli": "X"
+        },
+        {
+            "data": 22,
+            "ancilla": 35,
+            "pauli": "X"
+        },
+        {
+            "data": 24,
+            "ancilla": 36,
+            "pauli": "X"
+        },
+        {
+            "data": 1,
+            "ancilla": 37,
+            "pauli": "Z"
+        },
+        {
+            "data": 3,
+            "ancilla": 38,
+            "pauli": "Z"
+        },
+        {
+            "data": 5,
+            "ancilla": 39,
+            "pauli": "Z"
+        },
+        {
+            "data": 7,
+            "ancilla": 40,
+            "pauli": "Z"
+        },
+        {
+            "data": 11,
+            "ancilla": 41,
+            "pauli": "Z"
+        },
+        {
+            "data": 13,
+            "ancilla": 42,
+            "pauli": "Z"
+        },
+        {
+            "data": 15,
+            "ancilla": 43,
+            "pauli": "Z"
+        },
+        {
+            "data": 17,
+            "ancilla": 44,
+            "pauli": "Z"
+        },
+        {
+            "data": 21,
+            "ancilla": 45,
+            "pauli": "Z"
+        },
+        {
+            "data": 23,
+            "ancilla": 46,
+            "pauli": "Z"
+        }
+    ]
+]

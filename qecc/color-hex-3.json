@@ -1,0 +1,22 @@
+{
+    "n": 7,
+    "k": 1,
+    "d": 3,
+    "family": "Hexagon Color Code",
+    "logical_xs": [
+        "IXXIXII"
+    ],
+    "logical_zs": [
+        "IZZIZII"
+    ],
+    "x_stabilizers": [
+        "XXXXIII",
+        "XIXIXIX",
+        "IIXXXXI"
+    ],
+    "z_stabilizers": [
+        "ZZZZIII",
+        "ZIZIZIZ",
+        "IIZZZZI"
+    ]
+}
