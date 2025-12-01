@@ -1,4 +1,4 @@
-from asyndrome.bbcodeibm import ibm_syndrome_measurement
+# from asyndrome.bbcodeibm import ibm_syndrome_measurement
 from asyndrome.csscode import CSSCode
 from asyndrome.scheduler import Schedule, Scheduler
 from asyndrome.stimcirc import ErrorModel, StimCircuit, decoder_agent
@@ -145,18 +145,18 @@ def bbcode_parameter(bbcode_n: int):
     return bbcode_n, k, d
 
 
-class IBMEvaluator:
-    def __init__(self) -> None:
-        pass
+# class IBMEvaluator:
+#     def __init__(self) -> None:
+#         pass
 
-    @staticmethod
-    def evaluate(n: int, decoder: str, error_model: ErrorModel, nshots: int):
-        x_circuit, z_circuit = StimCircuit(), StimCircuit()
-        x_circuit = ibm_syndrome_measurement(n, x_circuit, error_model, "X")
-        z_circuit = ibm_syndrome_measurement(n, z_circuit, error_model, "Z")
+#     @staticmethod
+#     def evaluate(n: int, decoder: str, error_model: ErrorModel, nshots: int):
+#         x_circuit, z_circuit = StimCircuit(), StimCircuit()
+#         x_circuit = ibm_syndrome_measurement(n, x_circuit, error_model, "X")
+#         z_circuit = ibm_syndrome_measurement(n, z_circuit, error_model, "Z")
 
-        with decoder_agent(decoder, bbcode_parameter(n)) as agent:
-            xflips = agent.simulate(x_circuit, nshots)
-            zflips = agent.simulate(z_circuit, nshots)
+#         with decoder_agent(decoder, bbcode_parameter(n)) as agent:
+#             xflips = agent.simulate(x_circuit, nshots)
+#             zflips = agent.simulate(z_circuit, nshots)
 
-        return xflips / nshots, zflips / nshots
+#         return xflips / nshots, zflips / nshots

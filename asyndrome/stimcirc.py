@@ -10,6 +10,8 @@ import subprocess as sub
 import sys
 from typing import IO
 import stimbposd
+import relay_bp
+import relay_bp.stim
 
 
 class StimMeasurement:
@@ -81,6 +83,25 @@ def _sinter_predict_observable(detection_events, decoder, custom_decoders, dem):
     )
 
 
+RELAY_PARAMS = {
+    "gamma0": 0.1,
+    "pre_iter": 80,
+    "num_sets": 100,
+    "set_max_iter": 60,
+    "gamma_dist_interval": (-0.24, 0.66),
+    "stop_nconv": 2,
+}
+
+BPLSD_PARAMS = {
+    "max_iter": 5,
+    "bp_method": "min_sum",
+    "ms_scaling_factor": 0.5,
+    "schedule": "parallel",
+    "lsd_method": "lsd_e",
+    "lsd_order": 3,
+}
+
+
 class DecoderAgent:
     def __init__(self, decoder: str, nkd: tuple[int, int, int]) -> None:
         self._process = sub.Popen(
@@ -101,8 +122,10 @@ class DecoderAgent:
     ):
         custom_decoders = {
             "bp_osd": stimbposd.SinterDecoder_BPOSD(
-                max_bp_iters=self._nkd[0], osd_order=self._nkd[2]
-            )
+                max_bp_iters=self._nkd[0]  # , osd_order=self._nkd[2]
+            ),
+            "bp_lsd": stimbposd.SinterDecoder_BPLSD(),
+            **relay_bp.stim.sinter_decoders(**RELAY_PARAMS),
         }
 
         # some stim stuffs here

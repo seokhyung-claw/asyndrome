@@ -17,7 +17,7 @@ if action == "schedule":
         code = asyndrome.CSSCode.from_file(f"qecc/surface-{distance}x{distance}.json")
         error_model = asyndrome.NonUniformBrisbane(code.n, code.ancillas, 2)
 
-        scheduler = asyndrome.AlphaScheduler(iters_per_step=8000, nshots=20000)
+        scheduler = asyndrome.AlphaScheduler(iters_per_step=8000, nshots=40000)
         scheduler.schedule(code, "pymatching", error_model).to_file(
             f"results/nonuniform/surface-{distance}x{distance}.json"
         )

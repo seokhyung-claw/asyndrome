@@ -13,6 +13,9 @@ TESTCASE = "bbcode-72"
 code = asyndrome.CSSCode.from_file("qecc/bbcode-72.json")
 
 alpha_bp_osd = asyndrome.Schedule.from_file("qecc/bbcode-72/alpha-bp_osd.json")
+alpha_unionfind = asyndrome.Schedule.from_file(
+    "qecc/bbcode-72/alpha-hypergraph_union_find.json"
+)
 
 results = {
     "BP-OSD": [
@@ -28,7 +31,22 @@ results = {
                 72, "bp_osd", asyndrome.Brisbane(), 100000
             ),
         ),
-    ]
+    ],
+    "Unionfind": [
+        (
+            "AlphaSyndrome",
+            *alpha_unionfind.evaluate(
+                code, "hypergraph_union_find", asyndrome.Brisbane(), 100000
+            ),
+        ),
+        # IBM + BP-OSD
+        (
+            "IBM",
+            *asyndrome.IBMEvaluator.evaluate(
+                72, "hypergraph_union_find", asyndrome.Brisbane(), 100000
+            ),
+        ),
+    ],
 }
 
 # matplotlib configs
@@ -37,7 +55,7 @@ plt.rcParams["font.family"] = "serif"
 fig, axes = plt.subplots(1, 3, figsize=(15, 6), constrained_layout=True)
 colors = mpl.colormaps["Dark2"].colors  # type: ignore
 
-for i, decoder in enumerate(("BP-OSD",)):
+for i, decoder in enumerate(("BP-OSD", "Unionfind")):
     print(f"  {decoder}")
     ax = plt.subplot(1, 3, i + 1)
 
@@ -101,10 +119,9 @@ for i, decoder in enumerate(("BP-OSD",)):
 
 handles = []
 labels = []
-for ax in axes:
-    for handle, label in zip(*ax.get_legend_handles_labels()):
-        handles.append(handle)
-        labels.append(label)
+for handle, label in zip(*axes[0].get_legend_handles_labels()):
+    handles.append(handle)
+    labels.append(label)
 
 ax = plt.subplot(1, 3, 3)
 ax.axis("off")
