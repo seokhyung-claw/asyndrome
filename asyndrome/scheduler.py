@@ -41,28 +41,54 @@ class Schedule:
     def checks_at_tick(self, tick: int):
         return self.checks[tick]
 
+    def evaluation_circuit(self, code: CSSCode, error_model: ErrorModel):
+        z_circuit = evaluate_circuit(
+            code,
+            self,
+            code.x_stabilizers + code.z_stabilizers,
+            code.logical_xs,
+            error_model,
+        )
+
+        x_circuit = evaluate_circuit(
+            code,
+            self,
+            code.x_stabilizers + code.z_stabilizers,
+            code.logical_zs,
+            error_model,
+        )
+
+        return z_circuit, x_circuit
+
     def evaluate(
         self, code: CSSCode, decoder: str, error_model: ErrorModel, nshots: int
     ):
         with decoder_agent(decoder, (code.n, code.k, code.d)) as agent:
-            z_circuit = evaluate_circuit(
-                code,
-                self,
-                code.x_stabilizers + code.z_stabilizers,
-                code.logical_xs,
-                error_model,
-            )
-            x_circuit = evaluate_circuit(
-                code,
-                self,
-                code.x_stabilizers + code.z_stabilizers,
-                code.logical_zs,
-                error_model,
-            )
+            z_circuit, x_circuit = self.evaluation_circuit(code, error_model)
+
             z_flips = agent.simulate(z_circuit, nshots)
             x_flips = agent.simulate(x_circuit, nshots)
 
             return x_flips / nshots, z_flips / nshots
+
+    def distance(self, code: CSSCode, error_model: ErrorModel):
+        z_circuit, x_circuit = self.evaluation_circuit(code, error_model)
+        return min(
+            len(
+                z_circuit._circuit.search_for_undetectable_logical_errors(
+                    dont_explore_detection_event_sets_with_size_above=code.d + 2,
+                    dont_explore_edges_with_degree_above=code.d + 2,
+                    dont_explore_edges_increasing_symptom_degree=True,
+                )
+            ),
+            len(
+                x_circuit._circuit.search_for_undetectable_logical_errors(
+                    dont_explore_detection_event_sets_with_size_above=code.d + 2,
+                    dont_explore_edges_with_degree_above=code.d + 2,
+                    dont_explore_edges_increasing_symptom_degree=True,
+                )
+            ),
+        )
 
     def evaluate_overall(
         self, code: CSSCode, decoder: str, error_model: ErrorModel, nshots: int
