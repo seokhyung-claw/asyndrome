@@ -1,8 +1,10 @@
+from statistics import mean, stdev
 import sys
 
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 from matplotlib import patches
+from tqdm import tqdm
 
 import asyndrome
 
@@ -31,7 +33,7 @@ elif action == "evaluate":
     plt.rcParams["font.family"] = "serif"
 
     for i, distance in enumerate((3, 5, 7)):
-        print(f"  Distance {distance}...", end=" ", flush=True)
+        print(f"  Distance {distance}...")
         code = asyndrome.CSSCode.from_file(f"qecc/surface-{distance}x{distance}.json")
         error_model = asyndrome.NonUniformBrisbane(code.n, code.ancillas, 2)
 
@@ -42,13 +44,26 @@ elif action == "evaluate":
             f"results/nonuniform/surface-{distance}x{distance}.json"
         )
 
-        nshots = 2000000 * distance
+        nshots = 10000000
 
-        xrate, zrate = google_schedule.evaluate(code, "pymatching", error_model, nshots)
-        google_data = 1 - (1 - xrate) * (1 - zrate)
+        google_datas = []
+        alpha_datas = []
 
-        xrate, zrate = alpha_schedule.evaluate(code, "pymatching", error_model, nshots)
-        alpha_data = 1 - (1 - xrate) * (1 - zrate)
+        for _ in tqdm(range(10)):
+            xrate, zrate = google_schedule.evaluate(
+                code, "pymatching", error_model, nshots
+            )
+            google_data = 1 - (1 - xrate) * (1 - zrate)
+            google_datas.append(google_data)
+
+            xrate, zrate = alpha_schedule.evaluate(
+                code, "pymatching", error_model, nshots
+            )
+            alpha_data = 1 - (1 - xrate) * (1 - zrate)
+            alpha_datas.append(alpha_data)
+
+        alpha_data = mean(alpha_datas)
+        google_data = mean(google_datas)
 
         print("Plotting")
 
@@ -60,12 +75,15 @@ elif action == "evaluate":
         ax.bar(
             ["AlphaSyndrome", "Google"],
             [alpha_data, google_data],
+            yerr=[stdev(alpha_datas), stdev(google_datas)],
             color=[colors[0], colors[2]],
+            ecolor="black",
+            error_kw={"capsize": 10},
         )
 
         ax.text(
             -0.4,
-            (alpha_data * 0.8 + google_data * 0.2),
+            (alpha_data * 0.3 + google_data * 0.7),
             f"$\\downarrow${(google_data - alpha_data) * 100 / google_data:.2f}%",
         )
 
