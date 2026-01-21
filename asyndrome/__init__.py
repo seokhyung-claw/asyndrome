@@ -1,11 +1,9 @@
 import json
 from random import Random
-from asyndrome.csscode import CSSCode, PauliCheck
+from asyndrome.qeccode import QECCode, PauliCheck
 from asyndrome.scheduler import Scheduler, Schedule, load_all_schedules
-from asyndrome.baseline import BaselineScheduler
 from asyndrome.stimcirc import ErrorModel, StimCircuit
 from asyndrome.treesearch import AlphaScheduler
-from asyndrome.special import GoogleScheduler, TrivialScheduler# , IBMEvaluator
 
 
 class Brisbane(ErrorModel):
@@ -77,8 +75,7 @@ class NonUniformBrisbane(NonUniformModel):
 
 
 __all__ = [
-    "CSSCode",
-    "BaselineScheduler",
+    "QECCode",
     "AlphaScheduler",
     "PauliCheck",
     "Scheduler",
@@ -86,9 +83,6 @@ __all__ = [
     "ErrorModel",
     "Brisbane",
     "NonUniformBrisbane",
-    "GoogleScheduler",
     "load_all_schedules",
     "TrivialModel",
-    "TrivialScheduler",
-    "IBMEvaluator",
 ]

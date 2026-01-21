@@ -20,17 +20,10 @@ parser.add_argument(
     "-d",
     "--decoder",
     type=str,
-    default=None,
+    required=True,
     help="decoder to use of the corresponding code",
 )
 
-parser.add_argument(
-    "-m",
-    "--method",
-    type=str,
-    default="alpha",
-    help="searching method, default to 'alpha', could be 'baseline' 'alpha' 'google'",
-)
 
 parser.add_argument(
     "-o",
@@ -41,26 +34,19 @@ parser.add_argument(
 )
 
 
-def schedule(qecc: str, decoder: str | None, method: str, output: str | None):
+def schedule(qecc: str, decoder: str, output: str | None):
     print("Summary:")
     print(f"    QECC: {qecc}")
     print(f"    Decoder: {decoder}")
-    print(f"    Method: {method}")
 
-    code = asyndrome.CSSCode.from_file(qecc)
+    code = asyndrome.QECCode.from_file(qecc)
 
     start_time = time()
 
-    scheduler: asyndrome.Scheduler = {
-        "baseline": asyndrome.BaselineScheduler(logpath=f"{qecc}.pulp.log"),
-        "alpha": asyndrome.AlphaScheduler(iters_per_step=8000, nshots=10000),
-        "google": asyndrome.GoogleScheduler(code.d, code.n // code.d),
-        "trivial": asyndrome.TrivialScheduler(code.d, code.n // code.d)
-    }[method]
+    scheduler: asyndrome.Scheduler = asyndrome.AlphaScheduler(
+        iters_per_step=8000, nshots=10000
+    )
 
-    if decoder is None and method == "alpha":
-        raise RuntimeError("unable to schedule with alpha without decoder")
-    
     if decoder is None:
         decoder = ""
 
@@ -74,10 +60,7 @@ def schedule(qecc: str, decoder: str | None, method: str, output: str | None):
     if output is None:
         output_folder = str(Path(qecc).with_suffix(""))
         os.makedirs(output_folder, exist_ok=True)
-        if decoder == "":
-            output = output_folder + f"/{method}.json"
-        else:
-            output = output_folder + f"/{method}-{decoder}.json"
+        output = output_folder + f"/alphasyndrome-{decoder}.json"
 
     print(f"Output to {output}")
 
@@ -87,4 +70,4 @@ def schedule(qecc: str, decoder: str | None, method: str, output: str | None):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    schedule(args.qecc, args.decoder, args.method, args.output)
+    schedule(args.qecc, args.decoder, args.output)

@@ -34,7 +34,7 @@ DECODER_TAG = {
 
 def report(
     file: TextIO,
-    qecc: asyndrome.CSSCode,
+    qecc: asyndrome.QECCode,
     decoder: str,
     data: dict[str, tuple[float, float, float]],
     first_decoder: bool,
@@ -93,13 +93,13 @@ def test_code_family(code_family: str, decoders: list[str], nshots=1000000):
         # code family line
         print(
             "\\multicolumn{11}{|c|}{\\textbf{"
-            + asyndrome.CSSCode.from_file(all_codes[0] + ".json").family
+            + asyndrome.QECCode.from_file_css(all_codes[0] + ".json").family
             + "}} \\\\\\hline",
             file=file,
         )
 
         for code_file in all_codes:
-            code = asyndrome.CSSCode.from_file(code_file + ".json")
+            code = asyndrome.QECCode.from_file_css(code_file + ".json")
             print(f"  [[{code.n},{code.k},{code.d}]]")
 
             baseline_schedule = asyndrome.Schedule.from_file(

@@ -1,9 +1,8 @@
 import math
 import random
 from time import time
-from typing import Literal
 from rich.progress import track
-from asyndrome.csscode import CSSCode, PauliCheck
+from asyndrome.qeccode import QECCode, PauliCheck
 from asyndrome.scheduler import Schedule, Scheduler, evaluate_circuit
 
 from dataclasses import dataclass
@@ -113,10 +112,9 @@ class AlphaScheduler(Scheduler):
     def _tree_step(
         self,
         root: TreeNode,
-        code: CSSCode,
+        code: QECCode,
         checks: list[PauliCheck],
         stabilizers: list[str],
-        logicals: list[str],
         error_model: ErrorModel,
     ):
         iterations = max(0, self._iters_per_step - root.visits)
@@ -138,27 +136,35 @@ class AlphaScheduler(Scheduler):
 
             schedule = node.simulate_schedule(checks)
 
-            circuit = evaluate_circuit(
+            x_circuit = evaluate_circuit(
                 code,
                 self._sort_schedule(zip(checks, schedule)),
                 stabilizers,
-                logicals,
+                code.logical_xs,
                 error_model,
             )
 
-            result = self._decoder_agent.simulate(circuit, self._nshots)  # type: ignore
+            z_circuit = evaluate_circuit(
+                code,
+                self._sort_schedule(zip(checks, schedule)),
+                stabilizers,
+                code.logical_zs,
+                error_model,
+            )
 
-            node.backpropagate(self._nshots / (result + 1))
+            x_result = self._decoder_agent.simulate(x_circuit, self._nshots)  # type: ignore
+            z_result = self._decoder_agent.simulate(z_circuit, self._nshots)  # type: ignore
+
+            node.backpropagate(self._nshots / (max(x_result, z_result) + 1))
 
         return root.best_child(exploration_weight=0)
 
     def _tree_search(
         self,
         initial_state: TreeState,
-        code: CSSCode,
+        code: QECCode,
         checks: list[PauliCheck],
         stabilizers: list[str],
-        logicals: list[str],
         error_model: ErrorModel,
     ):
         node = TreeNode(initial_state)
@@ -173,9 +179,7 @@ class AlphaScheduler(Scheduler):
 
         while not node.is_terminal():
             single_step_start = time()
-            node = self._tree_step(
-                node, code, checks, stabilizers, logicals, error_model
-            )
+            node = self._tree_step(node, code, checks, stabilizers, error_model)
             single_step_end = time()
             depth, total = node.state.percentage()
             print(
@@ -184,43 +188,40 @@ class AlphaScheduler(Scheduler):
 
         return node.state
 
-    def _schedule_check(
-        self, check_pauli: Literal["X", "Z"], code: CSSCode, error_model: ErrorModel
-    ):
+    def _schedule_check(self, parition_id: int, code: QECCode, error_model: ErrorModel):
         # Pauli checks to be scheduled and necessary stabilizers, logicals
-        checks = code.x_checks() if check_pauli == "X" else code.z_checks()
-        stabilizers = code.z_stabilizers if check_pauli == "X" else code.x_stabilizers
-        logicals = code.logical_zs if check_pauli == "X" else code.logical_xs
+        checks = code.checks(parition_id)
+        stabilizers = code.stabilizer_partition[parition_id]
 
         schedule_state = self._tree_search(
             TreeState.initial_state(len(checks), code.n + code.ancillas),
             code,
             checks,
             stabilizers,
-            logicals,
             error_model,
         )
 
         return schedule_state.schedule
 
     def schedule(
-        self, code: CSSCode, decoder: str, error_model: ErrorModel
+        self, code: QECCode, decoder: str, error_model: ErrorModel
     ) -> Schedule:
+        all_ticks = []
+        all_checks = []
+        offset = 0
+
         with decoder_agent(decoder, (code.n, code.k, code.d)) as agent:
             self._decoder_agent = agent
-            # first, schedule x checks
-            print("Scheduling X checks")
-            x_ticks = self._schedule_check("X", code, error_model)
-            x_ticks_max: int = np.max(x_ticks)
+            for i, _ in enumerate(code.stabilizer_partition):
+                print(
+                    f"Scheduling partition {i + 1}/{len(code.stabilizer_partition)} partitions"
+                )
 
-            print("Scheduling Z checks")
-            z_ticks = self._schedule_check("Z", code, error_model)
-            z_ticks += (
-                x_ticks_max + 1
-            )  # advance the ticks by x_max + 1 to avoid conflict, maybe there's a better way to merge?
-            self._decoder_agent = None
+                t = self._schedule_check(i, code, error_model)
+                t += offset
+                offset = max(t)
 
-        all_ticks = x_ticks.astype(int).tolist() + z_ticks.astype(int).tolist()
-        all_checks = code.x_checks() + code.z_checks()
+                all_ticks += t.astype(int).tolist()
+                all_checks += code.checks(i)
 
         return self._sort_schedule(list(zip(all_checks, all_ticks)))

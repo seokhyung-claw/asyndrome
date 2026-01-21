@@ -3,7 +3,7 @@ import itertools
 import os
 import json
 from typing import Iterable
-from asyndrome.csscode import CSSCode, PauliCheck
+from asyndrome.qeccode import QECCode, PauliCheck
 from asyndrome.stimcirc import ErrorModel, StimCircuit, StimMeasurement, decoder_agent
 
 
@@ -41,11 +41,11 @@ class Schedule:
     def checks_at_tick(self, tick: int):
         return self.checks[tick]
 
-    def evaluation_circuit(self, code: CSSCode, error_model: ErrorModel):
+    def evaluation_circuit(self, code: QECCode, error_model: ErrorModel):
         z_circuit = evaluate_circuit(
             code,
             self,
-            code.x_stabilizers + code.z_stabilizers,
+            code.stabilizers,
             code.logical_xs,
             error_model,
         )
@@ -53,7 +53,7 @@ class Schedule:
         x_circuit = evaluate_circuit(
             code,
             self,
-            code.x_stabilizers + code.z_stabilizers,
+            code.stabilizers,
             code.logical_zs,
             error_model,
         )
@@ -61,7 +61,7 @@ class Schedule:
         return z_circuit, x_circuit
 
     def evaluate(
-        self, code: CSSCode, decoder: str, error_model: ErrorModel, nshots: int
+        self, code: QECCode, decoder: str, error_model: ErrorModel, nshots: int
     ):
         with decoder_agent(decoder, (code.n, code.k, code.d)) as agent:
             z_circuit, x_circuit = self.evaluation_circuit(code, error_model)
@@ -71,27 +71,8 @@ class Schedule:
 
             return x_flips / nshots, z_flips / nshots
 
-    def distance(self, code: CSSCode, error_model: ErrorModel):
-        z_circuit, x_circuit = self.evaluation_circuit(code, error_model)
-        return min(
-            len(
-                z_circuit._circuit.search_for_undetectable_logical_errors(
-                    dont_explore_detection_event_sets_with_size_above=code.d + 2,
-                    dont_explore_edges_with_degree_above=code.d + 2,
-                    dont_explore_edges_increasing_symptom_degree=True,
-                )
-            ),
-            len(
-                x_circuit._circuit.search_for_undetectable_logical_errors(
-                    dont_explore_detection_event_sets_with_size_above=code.d + 2,
-                    dont_explore_edges_with_degree_above=code.d + 2,
-                    dont_explore_edges_increasing_symptom_degree=True,
-                )
-            ),
-        )
-
     def evaluate_overall(
-        self, code: CSSCode, decoder: str, error_model: ErrorModel, nshots: int
+        self, code: QECCode, decoder: str, error_model: ErrorModel, nshots: int
     ):
         xrate, zrate = self.evaluate(code, decoder, error_model, nshots)
         return 1 - (1 - xrate) * (1 - zrate)
@@ -126,7 +107,7 @@ class Scheduler:
         return Schedule(schedule_grouped)
 
     def schedule(
-        self, code: CSSCode, decoder: str, error_model: ErrorModel
+        self, code: QECCode, decoder: str, error_model: ErrorModel
     ) -> Schedule:
         raise NotImplementedError()
 
@@ -144,7 +125,7 @@ def _ideal_measurement(
 
 
 def evaluate_circuit(
-    code: CSSCode,
+    code: QECCode,
     schedule: Schedule,
     stabilizers: list[str],
     logicals: list[str],
