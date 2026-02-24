@@ -5,7 +5,7 @@ from asyndrome.scheduler import Scheduler, Schedule, load_all_schedules
 from asyndrome.baseline import BaselineScheduler
 from asyndrome.stimcirc import ErrorModel, StimCircuit
 from asyndrome.treesearch import AlphaScheduler
-from asyndrome.special import GoogleScheduler, TrivialScheduler# , IBMEvaluator
+from asyndrome.special import GoogleScheduler, TrivialScheduler, IBMEvaluator
 
 
 class Brisbane(ErrorModel):

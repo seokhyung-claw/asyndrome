@@ -38,6 +38,8 @@ if __name__ == "__main__":
 
     colors = mpl.colormaps["Dark2"].colors  # type: ignore
 
+    plt.rcParams['pdf.fonttype'] = 42
+    plt.rcParams['ps.fonttype'] = 42
     plt.rcParams["font.size"] = 26
     plt.rcParams["font.family"] = "serif"
     fig, _ = plt.subplots(

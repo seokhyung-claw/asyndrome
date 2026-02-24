@@ -50,6 +50,8 @@ results = {
 }
 
 # matplotlib configs
+plt.rcParams['pdf.fonttype'] = 42
+plt.rcParams['ps.fonttype'] = 42
 plt.rcParams["font.size"] = 26
 plt.rcParams["font.family"] = "serif"
 fig, axes = plt.subplots(1, 3, figsize=(15, 6), constrained_layout=True)

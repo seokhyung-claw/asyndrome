@@ -124,7 +124,6 @@ class DecoderAgent:
             "bp_osd": stimbposd.SinterDecoder_BPOSD(
                 max_bp_iters=self._nkd[0]  # , osd_order=self._nkd[2]
             ),
-            "bp_lsd": stimbposd.SinterDecoder_BPLSD(),
             **relay_bp.stim.sinter_decoders(**RELAY_PARAMS),
         }
 
