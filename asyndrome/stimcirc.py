@@ -9,9 +9,17 @@ import sinter
 import subprocess as sub
 import sys
 from typing import IO
-import stimbposd
-import relay_bp
-import relay_bp.stim
+
+try:
+    import stimbposd
+except ImportError:
+    stimbposd = None
+
+try:
+    import relay_bp
+    import relay_bp.stim
+except ImportError:
+    relay_bp = None
 
 
 class StimMeasurement:
@@ -120,12 +128,19 @@ class DecoderAgent:
         circuit: StimCircuit,
         nshots: int = 10000,
     ):
-        custom_decoders = {
-            "bp_osd": stimbposd.SinterDecoder_BPOSD(
+        custom_decoders = {}
+
+        if stimbposd is not None:
+            custom_decoders["bp_osd"] = stimbposd.SinterDecoder_BPOSD(
                 max_bp_iters=self._nkd[0]  # , osd_order=self._nkd[2]
-            ),
-            **relay_bp.stim.sinter_decoders(**RELAY_PARAMS),
-        }
+            )
+        elif self._decoder == "bp_osd":
+            raise ModuleNotFoundError(
+                "bp_osd decoding requires stimbposd to be installed."
+            )
+
+        if relay_bp is not None:
+            custom_decoders.update(relay_bp.stim.sinter_decoders(**RELAY_PARAMS))
 
         # some stim stuffs here
         sampler = circuit._circuit.compile_detector_sampler()
