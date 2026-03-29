@@ -1,3 +1,4 @@
+import os
 import pickle
 import sys
 import numpy as np
@@ -5,7 +6,13 @@ import multiprocessing as mp
 
 
 def count_logic_error(decode, detection_events):
-    process: int = 32
+    requested_processes = int(os.environ.get("ASYNDROME_DECODER_PROCESSES", "4"))
+    available_cpus = os.cpu_count() or 1
+    shot_count = len(detection_events)
+    process = max(1, min(requested_processes, available_cpus, shot_count))
+
+    if process == 1:
+        return decode(detection_events)
 
     chunks = np.array_split(detection_events, process)
 
