@@ -1,11 +1,12 @@
+from pathlib import Path
 import numpy as np
-from mqt.qecc.codes.css_code import CSSCode
+from asyndrome.csscode import CSSCode
 from asyndrome.stimcirc import StimCircuit, StimMeasurement, ErrorModel
 
 
 def ideal_measures(csscode: CSSCode, circuit: StimCircuit):
     measures: list[StimMeasurement] = []
-    for stabilizer in csscode.stabs_as_pauli_strings():
+    for stabilizer in csscode.x_stabilizers + csscode.z_stabilizers:
         measures.append(circuit.measure_pauli(stabilizer))
     return measures
 
@@ -106,7 +107,9 @@ def ibm_syndrome_measurement(
     # number of logical qubits
     k = n - rank2(hx) - rank2(hz)
 
-    qcode = CSSCode(d, hx, hz)
+    qcode = CSSCode.from_file(
+        str(Path(__file__).resolve().parent.parent / "qecc" / f"bbcode-{bbcode_n}.json")
+    )
 
     lin_order = {}
     data_qubits = []
@@ -191,15 +194,16 @@ def ibm_syndrome_measurement(
     for c in Zchecks:
         stabilizers.append(check_to_pauli(c))
 
-    assert qcode.stabs_as_pauli_strings() == stabilizers
+    assert qcode.x_stabilizers + qcode.z_stabilizers == stabilizers
 
-    # syndrome measurement cycle as a list of operations
-    cycle = []
+    # syndrome measurement cycle as a list of per-tick operations
+    cycle_ticks = []
     U = np.identity(2 * n, dtype=int)
     # round 0: prep xchecks, CNOT zchecks and data
     t = 0
+    tick = []
     for q in Xchecks:
-        cycle.append(("PrepX", q))
+        tick.append(("PrepX", q))
     data_qubits_cnoted_in_this_round = []
     assert not (sZ[t] == "idle")
     for target in Zchecks:
@@ -209,13 +213,15 @@ def ibm_syndrome_measurement(
             U[lin_order[target], :] + U[lin_order[control], :]
         ) % 2
         data_qubits_cnoted_in_this_round.append(control)
-        cycle.append(("CNOT", control, target))
+        tick.append(("CNOT", control, target))
     for q in data_qubits:
         if not (q in data_qubits_cnoted_in_this_round):
-            cycle.append(("IDLE", q))
+            tick.append(("IDLE", q))
+    cycle_ticks.append(tick)
 
     # round 1-5: CNOT xchecks and data, CNOT zchecks and data
     for t in range(1, 6):
+        tick = []
         assert not (sX[t] == "idle")
         for control in Xchecks:
             direction = sX[t]
@@ -223,7 +229,7 @@ def ibm_syndrome_measurement(
             U[lin_order[target], :] = (
                 U[lin_order[target], :] + U[lin_order[control], :]
             ) % 2
-            cycle.append(("CNOT", control, target))
+            tick.append(("CNOT", control, target))
         assert not (sZ[t] == "idle")
         for target in Zchecks:
             direction = sZ[t]
@@ -231,12 +237,14 @@ def ibm_syndrome_measurement(
             U[lin_order[target], :] = (
                 U[lin_order[target], :] + U[lin_order[control], :]
             ) % 2
-            cycle.append(("CNOT", control, target))
+            tick.append(("CNOT", control, target))
+        cycle_ticks.append(tick)
 
     # round 6: CNOT xchecks and data, measure Z checks
     t = 6
+    tick = []
     for q in Zchecks:
-        cycle.append(("MeasZ", q))
+        tick.append(("MeasZ", q))
     assert not (sX[t] == "idle")
     data_qubits_cnoted_in_this_round = []
     for control in Xchecks:
@@ -245,60 +253,90 @@ def ibm_syndrome_measurement(
         U[lin_order[target], :] = (
             U[lin_order[target], :] + U[lin_order[control], :]
         ) % 2
-        cycle.append(("CNOT", control, target))
+        tick.append(("CNOT", control, target))
         data_qubits_cnoted_in_this_round.append(target)
     for q in data_qubits:
         if not (q in data_qubits_cnoted_in_this_round):
-            cycle.append(("IDLE", q))
+            tick.append(("IDLE", q))
+    cycle_ticks.append(tick)
 
     # round 7: all data qubits are idle, Prep Z checks, Meas X checks
+    tick = []
     for q in data_qubits:
-        cycle.append(("IDLE", q))
+        tick.append(("IDLE", q))
     for q in Xchecks:
-        cycle.append(("MeasX", q))
+        tick.append(("MeasX", q))
     for q in Zchecks:
-        cycle.append(("PrepZ", q))
+        tick.append(("PrepZ", q))
+    cycle_ticks.append(tick)
 
-    logicals = (
-        qcode.x_logicals_as_pauli_strings()
-        if logic == "X"
-        else qcode.z_logicals_as_pauli_strings()
-    )
+    logicals = qcode.logical_xs if logic == "X" else qcode.logical_zs
 
     first_round = ideal_measures(qcode, circuit)
     first_ls = []
     for string in logicals:
         first_ls.append(circuit.measure_pauli(string))
 
-    for gate, *targets in cycle:
-        if gate == "PrepX":
-            t = target_to_index(targets[0])
-            circuit.gate("RX", t)
-        elif gate == "PrepZ":
-            t = target_to_index(targets[0])
-            circuit.gate("RZ", t)
-        elif gate == "CNOT":
-            gate_c = target_to_index(targets[0])
-            gate_t = target_to_index(targets[1])
-            circuit.gate("CNOT", [gate_c, gate_t])
+    all_qubits = set(range(n + 2 * n2))
 
-            if gate_c >= n:
-                error_model.cnot(gate_c, circuit)
-            if gate_t >= n:
-                error_model.cnot(gate_t, circuit)
-        elif gate == "IDLE":
-            t = target_to_index(targets[0])
-            circuit.gate("I", t)
-            if t >= n:
-                error_model.idling(t, circuit)
-        elif gate == "MeasZ":
-            t = target_to_index(targets[0])
-            circuit.measures("MZ", [t])
-        elif gate == "MeasX":
-            t = target_to_index(targets[0])
-            circuit.measures("MX", [t])
-        else:
-            raise ValueError(f"unknown gate {gate}")
+    for tick in cycle_ticks:
+        used_qubits: set[int] = set()
+
+        for gate, *targets in tick:
+            if gate == "PrepX":
+                t = target_to_index(targets[0])
+                used_qubits.add(t)
+                circuit.gate("RX", t)
+                if error_model.circuit_level:
+                    error_model.after_reset("RX", t, circuit)
+            elif gate == "PrepZ":
+                t = target_to_index(targets[0])
+                used_qubits.add(t)
+                circuit.gate("RZ", t)
+                if error_model.circuit_level:
+                    error_model.after_reset("RZ", t, circuit)
+            elif gate == "CNOT":
+                gate_c = target_to_index(targets[0])
+                gate_t = target_to_index(targets[1])
+                used_qubits.add(gate_c)
+                used_qubits.add(gate_t)
+                circuit.gate("CNOT", [gate_c, gate_t])
+
+                if error_model.circuit_level:
+                    error_model.after_two_qubit_gate(
+                        "CNOT", [gate_c, gate_t], circuit
+                    )
+                else:
+                    if gate_c >= n:
+                        error_model.cnot(gate_c, circuit)
+                    if gate_t >= n:
+                        error_model.cnot(gate_t, circuit)
+            elif gate == "IDLE":
+                t = target_to_index(targets[0])
+                if error_model.circuit_level:
+                    continue
+                circuit.gate("I", t)
+                if t >= n:
+                    error_model.idling(t, circuit)
+            elif gate == "MeasZ":
+                t = target_to_index(targets[0])
+                used_qubits.add(t)
+                if error_model.circuit_level:
+                    error_model.before_measurement("MZ", t, circuit)
+                circuit.measures("MZ", [t])
+            elif gate == "MeasX":
+                t = target_to_index(targets[0])
+                used_qubits.add(t)
+                if error_model.circuit_level:
+                    error_model.before_measurement("MX", t, circuit)
+                circuit.measures("MX", [t])
+            else:
+                raise ValueError(f"unknown gate {gate}")
+
+        if error_model.circuit_level:
+            idle_qubits = sorted(all_qubits - used_qubits)
+            if idle_qubits:
+                error_model.idling(idle_qubits, circuit)
 
     second_round = ideal_measures(qcode, circuit)
     second_ls = []

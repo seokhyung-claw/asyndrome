@@ -154,27 +154,58 @@ def evaluate_circuit(
 
     first_round, first_ls = _ideal_measurement(circuit, stabilizers, logicals)
 
-    for tick, checks in enumerate(schedule.checks):
-        idle_ancillas = [True for _ in range(code.ancillas)]
+    if error_model.circuit_level:
+        all_qubits = set(range(code.n + code.ancillas))
 
-        for chk in checks:
-            idle_ancillas[chk.ancilla - code.n] = False
+        for checks in schedule.checks:
+            used_qubits: set[int] = set()
 
-            if chk.pauli == "X":
-                circuit.gate("H", chk.ancilla)
-                circuit.gate("CNOT", [chk.ancilla, chk.data])
-                circuit.gate("H", chk.ancilla)
-            else:
-                circuit.gate("CNOT", [chk.data, chk.ancilla])
+            for chk in checks:
+                used_qubits.add(chk.data)
+                used_qubits.add(chk.ancilla)
 
-        if tick != -1:  # only append error when the measurement is scheduled
+                if chk.pauli == "X":
+                    circuit.gate("H", chk.ancilla)
+                    error_model.after_single_qubit_gate("H", chk.ancilla, circuit)
+                    circuit.gate("CNOT", [chk.ancilla, chk.data])
+                    error_model.after_two_qubit_gate(
+                        "CNOT", [chk.ancilla, chk.data], circuit
+                    )
+                    circuit.gate("H", chk.ancilla)
+                    error_model.after_single_qubit_gate("H", chk.ancilla, circuit)
+                else:
+                    circuit.gate("CNOT", [chk.data, chk.ancilla])
+                    error_model.after_two_qubit_gate(
+                        "CNOT", [chk.data, chk.ancilla], circuit
+                    )
+
+            idle_qubits = sorted(all_qubits - used_qubits)
+            if idle_qubits:
+                error_model.idling(idle_qubits, circuit)
+    else:
+        for checks in schedule.checks:
+            idle_ancillas = [True for _ in range(code.ancillas)]
+
+            for chk in checks:
+                idle_ancillas[chk.ancilla - code.n] = False
+
+                if chk.pauli == "X":
+                    circuit.gate("H", chk.ancilla)
+                    circuit.gate("CNOT", [chk.ancilla, chk.data])
+                    circuit.gate("H", chk.ancilla)
+                else:
+                    circuit.gate("CNOT", [chk.data, chk.ancilla])
+
             for i, is_idle in enumerate(idle_ancillas):
                 if is_idle:
                     error_model.idling(i + code.n, circuit)
                 else:
                     error_model.cnot(i + code.n, circuit)
 
-    circuit.measures("MZ", [ancilla + code.n for ancilla in range(code.ancillas)])
+    ancilla_targets = [ancilla + code.n for ancilla in range(code.ancillas)]
+    if error_model.circuit_level:
+        error_model.before_measurement("MZ", ancilla_targets, circuit)
+    circuit.measures("MZ", ancilla_targets)
 
     second_round, second_ls = _ideal_measurement(circuit, stabilizers, logicals)
 

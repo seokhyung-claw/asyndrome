@@ -21,6 +21,43 @@ class Brisbane(ErrorModel):
         circuit.gate("DEPOLARIZE1", targets, 0.007432674432642006)
 
 
+class SD6NoiseModel(ErrorModel):
+    circuit_level = True
+
+    def __init__(self, p: float) -> None:
+        super().__init__()
+        self.p = p
+
+    def idling(self, targets: int | list[int], circuit: StimCircuit):
+        circuit.gate("DEPOLARIZE1", targets, self.p)
+
+    def after_single_qubit_gate(
+        self, gate: str, targets: int | list[int], circuit: StimCircuit
+    ):
+        circuit.gate("DEPOLARIZE1", targets, self.p)
+
+    def after_two_qubit_gate(
+        self, gate: str, targets: int | list[int], circuit: StimCircuit
+    ):
+        circuit.gate("DEPOLARIZE2", targets, self.p)
+
+    def before_measurement(
+        self, gate: str, targets: int | list[int], circuit: StimCircuit
+    ):
+        if gate == "MZ":
+            circuit.gate("X_ERROR", targets, self.p)
+        elif gate == "MX":
+            circuit.gate("Z_ERROR", targets, self.p)
+
+    def after_reset(
+        self, gate: str, targets: int | list[int], circuit: StimCircuit
+    ):
+        if gate == "RZ":
+            circuit.gate("X_ERROR", targets, self.p)
+        elif gate == "RX":
+            circuit.gate("Z_ERROR", targets, self.p)
+
+
 class NonUniformModel(ErrorModel):
     def __init__(self, error_data: dict[int, tuple[float, float]]) -> None:
         super().__init__()
@@ -90,6 +127,7 @@ __all__ = [
     "Schedule",
     "ErrorModel",
     "Brisbane",
+    "SD6NoiseModel",
     "NonUniformBrisbane",
     "GoogleScheduler",
     "load_all_schedules",

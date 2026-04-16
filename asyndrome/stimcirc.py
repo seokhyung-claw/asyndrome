@@ -195,6 +195,24 @@ def decoder_agent(decoder: str, nkd: tuple[int, int, int]):
 
 
 class ErrorModel:
+    circuit_level = False
+
     def idling(self, targets: int | list[int], circuit: StimCircuit): ...
 
     def cnot(self, targets: int | list[int], circuit: StimCircuit): ...
+
+    def after_single_qubit_gate(
+        self, gate: str, targets: int | list[int], circuit: StimCircuit
+    ): ...
+
+    def after_two_qubit_gate(
+        self, gate: str, targets: int | list[int], circuit: StimCircuit
+    ): ...
+
+    def before_measurement(
+        self, gate: str, targets: int | list[int], circuit: StimCircuit
+    ): ...
+
+    def after_reset(
+        self, gate: str, targets: int | list[int], circuit: StimCircuit
+    ): ...
